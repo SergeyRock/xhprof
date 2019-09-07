@@ -15,7 +15,10 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 		if (empty($dir)) {
 			$dir = ini_get("xhprof.output_dir");
 			if (empty($dir)) {
-				$dir = "/tmp";
+                $dir = ini_get("TEMP");
+                if (empty($dir)) {
+                    $dir = "/tmp";
+                }
 			}
 		}
 		$this->dir = $dir;
@@ -57,7 +60,9 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                 </form>
             </div>
 			<?php
-		}
+		} else {
+		    echo "Folder <b>{$this->dir}</b> is not found";
+        }
 	}
 
 	public function getRunsInfo($arRuns, $arSources)
