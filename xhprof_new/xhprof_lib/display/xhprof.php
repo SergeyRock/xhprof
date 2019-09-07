@@ -81,7 +81,7 @@ class Ol_Xhprof_Report
             <tr bgcolor="#bdc7d8">
                 <th>Date</th>
                 <th>Run</th>
-                <th>Source</th>
+                <th>Namespace</th>
                 <th>Custom comment</th>
                 <th>File size</th>
             </tr>

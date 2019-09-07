@@ -15,7 +15,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 		if (empty($dir)) {
 			$dir = ini_get("xhprof.output_dir");
 			if (empty($dir)) {
-                $dir = ini_get("TEMP");
+                $dir = sys_get_temp_dir();
                 if (empty($dir)) {
                     $dir = "/tmp";
                 }
@@ -115,7 +115,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             $highlightedSource = '';
         }
 
-        $url = str_replace($_SERVER['DOCUMENT_ROOT'], '', $GLOBALS['XHPROF_LIB_ROOT']) . '/../xhprof_html/index.php';
+        $url = self::getRunReportLink($run, $source);
         $runId = $run . '.' . $source;
 
         $comment = '';
@@ -128,8 +128,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         ?>
         <tr>
             <td>
-                <a href="<?= htmlentities($url) ?>?run=<?= htmlentities($run) ?>&source=<?= htmlentities($source) ?>">
-                    <?= date("Y-m-d H:i:s", filemtime($fileName)) ?></a><br/>
+                <a href="<?= $url ?>"><?= date("Y-m-d H:i:s", filemtime($fileName)) ?></a>
             </td>
             <td>
                 <input type="checkbox" value="<?= $runId ?>" name="runs[]" id="<?= $runId ?>">

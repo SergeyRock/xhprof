@@ -36,6 +36,16 @@ foreach ($params as $k => $v) {
   }
 }
 
+$obXhprofRuns = new XHProfRuns_Ol();
+
+if (array_key_exists('compare_runs', $_REQUEST)) {
+    XHProfRuns_Ol::goToCompareRunsByRequest();
+} elseif (array_key_exists('delete_runs', $_REQUEST)) {
+    $obXhprofRuns->deleteSelectedRunsByRequest();
+} elseif (array_key_exists('save_comments', $_REQUEST)) {
+    $obXhprofRuns->saveCustomCommentsByRequest();
+}
+
 echo "<html>";
 
 echo "<head><title>XHProf: Hierarchical Profiler Report</title>";
@@ -51,16 +61,6 @@ $vwlbar = ' class="vwlbar"';
 $vbbar = ' class="vbbar"';
 $vrbar = ' class="vrbar"';
 $vgbar = ' class="vgbar"';
-
-$obXhprofRuns = new XHProfRuns_Ol();
-
-if (array_key_exists('compare_runs', $_REQUEST)) {
-    XHProfRuns_Ol::goToCompareRunsByRequest();
-} elseif (array_key_exists('delete_runs', $_REQUEST)) {
-    $obXhprofRuns->deleteSelectedRunsByRequest();
-} elseif (array_key_exists('save_comments', $_REQUEST)) {
-    $obXhprofRuns->saveCustomCommentsByRequest();
-}
 
 Ol_Xhprof_Report::displayXHProfReportCompare($obXhprofRuns, $params, $source, $run, $symbol, $sort);
 
