@@ -1,3 +1,11 @@
+This fork of original Xhprof adds new features with new GUI.
+It allows to:
+1. Compare more then two profile runs at the same time without permission about the same namespace (against two runs only in one namesapace in native xhprof gui tool)
+2. Set custom comments on runs
+3. Delete chosen runs from gui
+
+Temp php directory is used as source for xhprof runs by default.
+
 For installation and usage notes refer to:
    xhprof_html/docs/index.html
 
