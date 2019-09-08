@@ -86,3 +86,7 @@ div.success {
 div.control-element {
   margin-bottom: 6px;
 }
+
+td.left-separator, th.left-separator {
+    border-left: 2px solid black;
+}

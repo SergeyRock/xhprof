@@ -165,11 +165,12 @@ class Ol_Xhprof_Report
 
     protected static function printTableHeader(array $arRunsInfo, array $arSources, array $arMetrics, $url_params, $printAverage = true)
     {
-        global $vwbar, $sortable_columns, $base_path;
+        global $sortable_columns, $base_path;
+
         $runsCount = count($arRunsInfo);
         $colspan = $printAverage ? $runsCount + 1 : $runsCount;
         ?>
-        <thead class="sticky-header">
+        <thead>
         <tr>
             <th class="first-header-row" rowspan="2">Function name</th>
             <?php
@@ -183,7 +184,7 @@ class Ol_Xhprof_Report
                 }
 
                 ?>
-                <th class="first-header-row vwbar" colspan="<?= $colspan ?>"><?= $header ?></th>
+                <th class="first-header-row vwbar left-separator" colspan="<?= $colspan ?>"><?= $header ?></th>
                 <?php
             }
             ?>
@@ -192,15 +193,19 @@ class Ol_Xhprof_Report
             <?php
             foreach ($arMetrics as $stat) {
                 for ($i = 0; $i < $runsCount; $i++) {
-
                     $runInfoWrapped = self::getWrappedTitle($arRunsInfo[$i], 5);
                     $sourceInfo = htmlentities($arSources[$i]);
 
                     $href = XHProfRuns_Ol::getRunReportLink($arRunsInfo[$i], $sourceInfo);
                     $url = "<a title='{$sourceInfo}' href='{$href}'>{$runInfoWrapped}</a>";
 
+                    $additionalClass = '';
+                    if ($i ===0) {
+                        $additionalClass = 'left-separator';
+                    }
+
                     ?>
-                    <th class="second-header-row vwbar"><?= $url ?></th>
+                    <th class="second-header-row vwbar <?= $additionalClass ?>"><?= $url ?></th>
                     <?php
                 }
                 if ($printAverage) {
@@ -240,7 +245,11 @@ class Ol_Xhprof_Report
             print_td_num($value, $format_cbk[$metricCode], $sort_col === $metricCode);
             $tdContent = ob_get_contents();
             ob_end_clean();
-            echo str_replace('</td>', ' ' . $deltaHtml . '</td>', $tdContent);
+            $tdContent = str_replace('</td>', ' ' . $deltaHtml . '</td>', $tdContent);
+            if ($i === 0) {
+                $tdContent = str_replace('class="', 'class="left-separator ', $tdContent);
+            }
+            echo $tdContent;
         }
         if ($printAverage) {
             $average /= $runsCount;
