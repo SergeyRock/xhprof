@@ -211,6 +211,10 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             if (file_exists($file)) {
                 unlink($file);
             }
+            $file = $this->getRunCommentFileName($arRuns[$i], $arSources[$i]);
+            if (file_exists($file)) {
+                unlink($file);
+            }
         }
     }
 }
