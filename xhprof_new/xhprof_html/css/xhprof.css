@@ -59,13 +59,13 @@ td.table-cell{
 
 .first-header-row {
   position: sticky;
-  top: 29px;
+  top: 0px;
   background: #bdc7d8;
 }
 
 .second-header-row {
   position: sticky;
-  top: 52px;
+  top: 23px;
   background: #d3ddee;
 }
 

@@ -111,6 +111,8 @@ class Ol_Xhprof_Report
         global $base_path;
         global $sort_col;
         global $descriptions;
+        global $metrics;
+        global $stats;
 
         $size = count($arFlatTabs[0]);
         $desc = str_replace('<br>', ' ', $descriptions[$sort_col]);
@@ -131,37 +133,18 @@ class Ol_Xhprof_Report
 
         <table border=1 cellpadding=2 cellspacing=1 width="100%" rules=rows bordercolor="#bdc7d8" align=center>
             <?php
+            $arMetrics = array_diff($stats, ['fn']);
 
-            $possible_metrics = array_keys(xhprof_get_possible_metrics());
-            $possible_metrics[] = 'ct';
-            $arMetrics = ['ct', 'wt', 'mu',];
-            // leave possible metrics only
-            $arMetrics = array_intersect($arMetrics, $possible_metrics);
-
-            self::printTableHeader($arRunsInfo, $arSources, $arMetrics, $url_params, $printAverage);
-
-            $arFlatTab = $arFlatTabs[0];
-            foreach ($arFlatTab as $arRun) {
-                if ($limit <= 0) {
-                    break;
+            // Keep absolute metrics only
+            $arMetricsWoPercents = [];
+            foreach ($arMetrics as $metric) {
+                if (false === strpos($metric, '%')) {
+                    $arMetricsWoPercents[] = $metric;
                 }
-                $functionName = $arRun['fn'];
-                $runParam = explode(',', $url_params['run'])[0];
-                $sourceParam = explode(',', $url_params['source'])[0];
-                $funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
-                $href = XHProfRuns_Ol::BASE_URL . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
-                ?>
-                <tr>
-                    <td><?= xhprof_render_link($functionName, $href) . print_source_link($arRun) ?></td>
-                    <?php
-                    foreach ($arMetrics as $metric) {
-                        self::printFunctionMetric($arSymbolTabs, $functionName, $metric, $printAverage);
-                    }
-                    ?>
-                </tr>
-                <?php
-                $limit--;
             }
+
+            self::printTableHeader($arRunsInfo, $arSources, $arMetricsWoPercents, $url_params, $printAverage);
+            self::printTableBody($url_params, $arFlatTabs, $arSymbolTabs, $limit, $printAverage, $arMetricsWoPercents);
             ?>
 
         </table>
@@ -280,5 +263,39 @@ class Ol_Xhprof_Report
     {
         $arLines = str_split($title, $maxLineChars);
         return implode("\n", $arLines);
+    }
+
+    /**
+     * @param $url_params
+     * @param $arFlatTabs
+     * @param $arSymbolTabs
+     * @param $limit
+     * @param $printAverage
+     * @param array $arMetricsWoPercents
+     */
+    protected static function printTableBody($url_params, $arFlatTabs, $arSymbolTabs, $limit, $printAverage, array $arMetricsWoPercents)
+    {
+        $arFlatTab = $arFlatTabs[0];
+        foreach ($arFlatTab as $arRun) {
+            if ($limit <= 0) {
+                break;
+            }
+            $functionName = $arRun['fn'];
+            $runParam = explode(',', $url_params['run'])[0];
+            $sourceParam = explode(',', $url_params['source'])[0];
+            $funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
+            $href = XHProfRuns_Ol::BASE_URL . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
+            ?>
+            <tr>
+                <td><?= xhprof_render_link($functionName, $href) . print_source_link($arRun) ?></td>
+                <?php
+                foreach ($arMetricsWoPercents as $metric) {
+                    self::printFunctionMetric($arSymbolTabs, $functionName, $metric, $printAverage);
+                }
+                ?>
+            </tr>
+            <?php
+            $limit--;
+        }
     }
 }
