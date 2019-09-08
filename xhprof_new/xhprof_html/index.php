@@ -40,15 +40,19 @@ $obXhprofRuns = new XHProfRuns_Ol();
 
 if (array_key_exists('compare_runs', $_REQUEST)) {
     XHProfRuns_Ol::goToCompareRunsByRequest();
+} elseif (array_key_exists('diff_runs', $_REQUEST)) {
+    XHProfRuns_Ol::goToDiffRunsByRequest();
+} elseif (array_key_exists('aggregate_runs', $_REQUEST)) {
+    XHProfRuns_Ol::goToAggregateRunsByRequest();
 } elseif (array_key_exists('delete_runs', $_REQUEST)) {
     $obXhprofRuns->deleteSelectedRunsByRequest();
 } elseif (array_key_exists('save_comments', $_REQUEST)) {
     $obXhprofRuns->saveCustomCommentsByRequest();
 }
 
-echo "<html>";
+echo '<html lang="en">';
 
-echo "<head><title>XHProf: Hierarchical Profiler Report</title>";
+echo '<head><title>XHProf: Hierarchical Profiler Report</title>';
 xhprof_include_js_css('./../../xhprof_html');
 Ol_Xhprof_Report::includeCss();
 echo "</head>";

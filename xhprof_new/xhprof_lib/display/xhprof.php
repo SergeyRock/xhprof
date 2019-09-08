@@ -23,22 +23,21 @@ class Ol_Xhprof_Report
             $arSources = explode(",", $sources);
             $runsCount = count($arRuns);
             ?>
-            <div class="sticky">
-                <div style="float: left;">Each run is compared with the base run (<?= $arRuns[0] ?>)</div>
-                <div style="text-align: right;font-weight:bold;"><a href="./../xhprof_html/index.php">View all available
-                        runs →</a></div>
+            <div class="sticky">`
+                <div style="float: left;">Each run is compared with the base run <b><?= $arRuns[0] ?></b></div>
+                <div style="float: right;font-weight:bold;"><a href="./../xhprof_html/index.php">View all available runs →</a></div>
             </div>
             <?php
 
             self::printRunsInfo($obXhprofRuns, $arRuns, $arSources);
 
             $description = '';
-            $xhprof_data = $arFlatSymbolTabs = $arSymbolTabs = [];
+            $xhprofData = $arFlatSymbolTabs = $arSymbolTabs = [];
             for ($i = 0; $i < $runsCount; $i++) {
-                $xhprof_data[] = $obXhprofRuns->get_run($arRuns[$i], $arSources[$i], $description);
+                $xhprofData[] = $obXhprofRuns->get_run($arRuns[$i], $arSources[$i], $description);
             }
 
-            foreach ($xhprof_data as $data) {
+            foreach ($xhprofData as $data) {
                 init_metrics($data, $symbol, $sort, false);
 
                 if (!empty($symbol)) {
@@ -105,7 +104,7 @@ class Ol_Xhprof_Report
         <?php
     }
 
-    protected static function printTableOfRuns($url_params, $arFlatTabs, $arSymbolTabs, $arRunsInfo, $arSources, $limit = 100)
+    protected static function printTableOfRuns($url_params, $arFlatTabs, $arSymbolTabs, $arRunsInfo, $arSources, $limit = 100, $printAverage = true)
     {
         self::includeCss();
 
@@ -114,12 +113,12 @@ class Ol_Xhprof_Report
         global $descriptions;
 
         $size = count($arFlatTabs[0]);
-        $desc = str_replace("<br>", " ", $descriptions[$sort_col]);
+        $desc = str_replace('<br>', ' ', $descriptions[$sort_col]);
         $display_link = "";
         if ($limit === 100) {
             $title = "Displaying top $limit functions: Sorted by $desc ";
             $display_link = xhprof_render_link(
-                "[ display all ]",
+                '[ display all ]',
                 "$base_path/?" .
                 http_build_query(xhprof_array_set($url_params, 'all', 1)));
         } else {
@@ -139,7 +138,7 @@ class Ol_Xhprof_Report
             // leave possible metrics only
             $arMetrics = array_intersect($arMetrics, $possible_metrics);
 
-            self::printTableHeader($arRunsInfo, $arSources, $arMetrics, $url_params);
+            self::printTableHeader($arRunsInfo, $arSources, $arMetrics, $url_params, $printAverage);
 
             $arFlatTab = $arFlatTabs[0];
             foreach ($arFlatTab as $arRun) {
@@ -150,14 +149,13 @@ class Ol_Xhprof_Report
                 $runParam = explode(',', $url_params['run'])[0];
                 $sourceParam = explode(',', $url_params['source'])[0];
                 $funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
-                $href = "./../../xhprof_html/index.php?" .
-                    http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
+                $href = XHProfRuns_Ol::BASE_URL . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
                 ?>
                 <tr>
                     <td><?= xhprof_render_link($functionName, $href) . print_source_link($arRun) ?></td>
                     <?php
                     foreach ($arMetrics as $metric) {
-                        self::printFunctionMetric($arSymbolTabs, $functionName, $metric);
+                        self::printFunctionMetric($arSymbolTabs, $functionName, $metric, $printAverage);
                     }
                     ?>
                 </tr>
@@ -182,17 +180,18 @@ class Ol_Xhprof_Report
         echo "<link href='./../xhprof_html/css/xhprof.css' rel='stylesheet' type='text/css' />";
     }
 
-    protected static function printTableHeader(array $arRunsInfo, array $arSources, array $arMetrics, $url_params)
+    protected static function printTableHeader(array $arRunsInfo, array $arSources, array $arMetrics, $url_params, $printAverage = true)
     {
         global $vwbar, $sortable_columns, $base_path;
         $runsCount = count($arRunsInfo);
+        $colspan = $printAverage ? $runsCount + 1 : $runsCount;
         ?>
-        <thead>
-        <tr bgcolor="#bdc7d8">
-            <th rowspan="2">Function name</th>
+        <thead class="sticky-header">
+        <tr>
+            <th class="first-header-row" rowspan="2">Function name</th>
             <?php
             foreach ($arMetrics as $stat) {
-                $desc = stat_description($stat);
+                $desc = str_replace('<br>', ' ', stat_description($stat));
                 if (array_key_exists($stat, $sortable_columns)) {
                     $href = "$base_path/?" . http_build_query(xhprof_array_set($url_params, 'sort', $stat));
                     $header = xhprof_render_link($desc, $href);
@@ -201,12 +200,12 @@ class Ol_Xhprof_Report
                 }
 
                 ?>
-                <th colspan="<?= $runsCount ?>" <?= $vwbar ?>><?= $header ?></th>
+                <th class="first-header-row vwbar" colspan="<?= $colspan ?>"><?= $header ?></th>
                 <?php
             }
             ?>
         </tr>
-        <tr bgcolor="#d3ddee">
+        <tr>
             <?php
             foreach ($arMetrics as $stat) {
                 for ($i = 0; $i < $runsCount; $i++) {
@@ -218,7 +217,12 @@ class Ol_Xhprof_Report
                     $url = "<a title='{$sourceInfo}' href='{$href}'>{$runInfoWrapped}</a>";
 
                     ?>
-                    <th <?= $vwbar ?>><?= $url ?></th>
+                    <th class="second-header-row vwbar"><?= $url ?></th>
+                    <?php
+                }
+                if ($printAverage) {
+                    ?>
+                    <th class="second-header-row vwbar">Average</th>
                     <?php
                 }
             }
@@ -228,15 +232,17 @@ class Ol_Xhprof_Report
         <?php
     }
 
-    protected static function printFunctionMetric($arXhprofData, $functionName, $metricCode)
+    protected static function printFunctionMetric($arXhprofData, $functionName, $metricCode, $printAverage)
     {
         global $sort_col, $format_cbk;
         $runsCount = count($arXhprofData);
 
         $value0 = 0;
+        $average = 0;
         for ($i = 0; $i < $runsCount; $i++) {
             $deltaHtml = '';
             $value = $arXhprofData[$i][$functionName][$metricCode];
+            $average += $value;
             if ($i === 0) {
                 $value0 = $value;
             } elseif ((int)$value !== 0) {
@@ -252,6 +258,10 @@ class Ol_Xhprof_Report
             $tdContent = ob_get_contents();
             ob_end_clean();
             echo str_replace('</td>', ' ' . $deltaHtml . '</td>', $tdContent);
+        }
+        if ($printAverage) {
+            $average /= $runsCount;
+            print_td_num($average, $format_cbk[$metricCode], $sort_col === $metricCode);
         }
     }
 

@@ -36,6 +36,10 @@ td input[type=number] {
   width: 60px;
 }
 
+td input[type=number].weight {
+  width: 43px;
+}
+
 td textarea.custom_comment {
   width: 100%;
 }
@@ -47,9 +51,38 @@ td.table-cell{
 .sticky {
   position: sticky;
   top: 0;
-  min-height: 2em;
-  padding: 10px 0 0;
+  padding: 5px;
+  background: #cafaff;
+  border: 1px solid #a7a7a7;
+  border-collapse: collapse;
+}
+
+.first-header-row {
+  position: sticky;
+  top: 29px;
+  background: #bdc7d8;
+}
+
+.second-header-row {
+  position: sticky;
+  top: 52px;
+  background: #d3ddee;
+}
+
+div.error {
+  background-color: yellow;
+  border: 1px solid grey;
+  padding: 5px;
   margin-bottom: 10px;
-  background: #fff;
-  border-bottom: 1px solid #a7a7a7;
+}
+
+div.success {
+  background-color: #95ffb5;
+  border: 1px solid grey;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+div.control-element {
+  margin-bottom: 6px;
 }
