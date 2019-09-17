@@ -1,8 +1,8 @@
 <?php
 require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/display/xhprof.php';
-require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../xhprof_lib/utils/xhprof_lib.php';
-require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../xhprof_lib/utils/callgraph_utils.php';
-require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../xhprof_lib/utils/xhprof_runs.php';
+require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../../xhprof_lib/utils/xhprof_lib.php';
+require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../../xhprof_lib/utils/callgraph_utils.php';
+require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../../xhprof_lib/utils/xhprof_runs.php';
 
 class Ol_Xhprof_Report
 {
@@ -25,7 +25,7 @@ class Ol_Xhprof_Report
             ?>
             <div class="sticky">`
                 <div style="float: left;">Each run is compared with the base run <b><?= $arRuns[0] ?></b></div>
-                <div style="float: right;font-weight:bold;"><a href="./../xhprof_html/index.php">View all available runs →</a></div>
+                <div style="float: right;font-weight:bold;"><a href="./index.php">View all available runs →</a></div>
             </div>
             <?php
 
@@ -75,8 +75,7 @@ class Ol_Xhprof_Report
         }
         ?>
         <h3 align="center">Compared runs info</h3>
-        <table border="1" cellpadding="2" cellspacing="1" rules="rows" bordercolor="#bdc7d8" align="center"
-               width="100%">
+        <table border="1" cellpadding="2" cellspacing="1" rules="rows" bordercolor="#bdc7d8" align="center" width="100%" class="highlighted">
             <tr bgcolor="#bdc7d8">
                 <th>Date</th>
                 <th>Run</th>
@@ -116,22 +115,30 @@ class Ol_Xhprof_Report
 
         $size = count($arFlatTabs[0]);
         $desc = str_replace('<br>', ' ', $descriptions[$sort_col]);
-        $display_link = "";
+
+        $title = '';
         if ($limit === 100) {
-            $title = "Displaying top $limit functions: Sorted by $desc ";
-            $display_link = xhprof_render_link(
-                '[ display all ]',
-                "$base_path/?" .
-                http_build_query(xhprof_array_set($url_params, 'all', 1)));
+            $title = "Displaying top $limit functions: ";
+            $funcLimitAnchor = 'display all';
+            $allValue = 1;
+
         } else {
             $limit = $size;
-            $title = "Sorted by $desc";
+            $funcLimitAnchor = 'display top 100 functions';
+            $allValue = 0;
+
         }
+        $display_link = xhprof_render_link(
+            $funcLimitAnchor,
+            "$base_path/?" .
+            http_build_query(xhprof_array_set($url_params, 'all', $allValue)));
+
+        $title .= "Sorted by <span class='sorted'>$desc</span> ";
 
         ?>
-        <h3 align=center><?= $title . $display_link ?></h3>
+        <h3 align=center><?= $title ?> [ <?=$display_link ?> ]</h3>
 
-        <table border=1 cellpadding=2 cellspacing=1 width="100%" rules=rows bordercolor="#bdc7d8" align=center>
+        <table border=1 cellpadding=2 cellspacing=1 width="100%" rules="rows" bordercolor="#bdc7d8" align="center" class="highlighted">
             <?php
             $arMetrics = array_diff($stats, ['fn']);
 
@@ -160,12 +167,12 @@ class Ol_Xhprof_Report
     public static function includeCss()
     {
         // style sheets
-        echo "<link href='./../xhprof_html/css/xhprof.css' rel='stylesheet' type='text/css' />";
+        echo "<link href='" . XHProfRuns_Ol::getRelativeUrlToOriginalDir() . "/xhprof_new/xhprof_html/css/xhprof.css' rel='stylesheet' type='text/css' />";
     }
 
     protected static function printTableHeader(array $arRunsInfo, array $arSources, array $arMetrics, $url_params, $printAverage = true)
     {
-        global $sortable_columns, $base_path;
+        global $sortable_columns, $base_path, $sort_col;
 
         $runsCount = count($arRunsInfo);
         $colspan = $printAverage ? $runsCount + 1 : $runsCount;
@@ -182,9 +189,9 @@ class Ol_Xhprof_Report
                 } else {
                     $header = $desc;
                 }
-
+                $cssClass = $sort_col === $stat ? ' sorted' : '';
                 ?>
-                <th class="first-header-row vwbar left-separator" colspan="<?= $colspan ?>"><?= $header ?></th>
+                <th class="first-header-row vwbar left-separator<?= $cssClass ?>" colspan="<?= $colspan ?>"><?= $header ?></th>
                 <?php
             }
             ?>
@@ -200,7 +207,7 @@ class Ol_Xhprof_Report
                     $url = "<a title='{$sourceInfo}' href='{$href}'>{$runInfoWrapped}</a>";
 
                     $additionalClass = '';
-                    if ($i ===0) {
+                    if ($i === 0) {
                         $additionalClass = 'left-separator';
                     }
 
@@ -220,7 +227,7 @@ class Ol_Xhprof_Report
         <?php
     }
 
-    protected static function printFunctionMetric($arXhprofData, $functionName, $metricCode, $printAverage)
+    protected static function printFunctionMetric($url_params, $arXhprofData, $functionName, $metricCode, $printAverage)
     {
         global $sort_col, $format_cbk;
         $runsCount = count($arXhprofData);
@@ -249,6 +256,18 @@ class Ol_Xhprof_Report
             if ($i === 0) {
                 $tdContent = str_replace('class="', 'class="left-separator ', $tdContent);
             }
+			
+			// set link for current sorted column cells only
+			if ($sort_col === $metricCode) {
+				$runParam = explode(',', $url_params['run'])[$i];
+				$sourceParam = explode(',', $url_params['source'])[$i];
+				$funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
+				$href = XHProfRuns_Ol::getRelativeUrlToOriginalDir() . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
+				
+				$pattern = '#(<td[^>]+>)(.+?)([\s]+<.+)#sui';
+				$tdContent = preg_replace($pattern, "$1<a class='quite-url' href='{$href}'>$2</a>$3", $tdContent);
+			}
+			
             echo $tdContent;
         }
         if ($printAverage) {
@@ -293,13 +312,13 @@ class Ol_Xhprof_Report
             $runParam = explode(',', $url_params['run'])[0];
             $sourceParam = explode(',', $url_params['source'])[0];
             $funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
-            $href = XHProfRuns_Ol::BASE_URL . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
+            $href = XHProfRuns_Ol::getRelativeUrlToOriginalDir() . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
             ?>
             <tr>
-                <td><?= xhprof_render_link($functionName, $href) . print_source_link($arRun) ?></td>
+                <td><?= xhprof_render_link($functionName, $href) ?></td>
                 <?php
                 foreach ($arMetricsWoPercents as $metric) {
-                    self::printFunctionMetric($arSymbolTabs, $functionName, $metric, $printAverage);
+                    self::printFunctionMetric($url_params, $arSymbolTabs, $functionName, $metric, $printAverage);
                 }
                 ?>
             </tr>

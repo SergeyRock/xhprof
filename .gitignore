@@ -16,3 +16,10 @@ support/libxhprof/.phutil_module_cache
 
 tmp
 tmp/*
+
+.idea
+.idea/*
+
+xhprof_html
+xhprof_html/xhprof_html
+!xhprof_html/xhprof_html/*

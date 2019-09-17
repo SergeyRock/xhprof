@@ -5,7 +5,7 @@
 $GLOBALS['OL_XHPROF_LIB_ROOT'] = __DIR__ . '/../xhprof_lib';
 
 require_once $GLOBALS['OL_XHPROF_LIB_ROOT'].'/display/xhprof.php';
-include_once $GLOBALS['OL_XHPROF_LIB_ROOT'].'/../../xhprof_lib/display/xhprof.php';
+include_once $GLOBALS['OL_XHPROF_LIB_ROOT'].'/../../../xhprof_lib/display/xhprof.php';
 require_once $GLOBALS['OL_XHPROF_LIB_ROOT'].'/utils/xhprof_runs.php';
 
 // param name, its type, and default value
@@ -53,11 +53,11 @@ if (array_key_exists('compare_runs', $_REQUEST)) {
 echo '<html lang="en">';
 
 echo '<head><title>XHProf: Hierarchical Profiler Report</title>';
-xhprof_include_js_css('./../../xhprof_html');
+xhprof_include_js_css(XHProfRuns_Ol::getRelativeUrlToOriginalDir());
 Ol_Xhprof_Report::includeCss();
-echo "</head>";
+echo '</head>';
 
-echo "<body>";
+echo '<body>';
 
 $vbar  = ' class="vbar"';
 $vwbar = ' class="vwbar"';
@@ -69,5 +69,5 @@ $vgbar = ' class="vgbar"';
 Ol_Xhprof_Report::displayXHProfReportCompare($obXhprofRuns, $params, $source, $run, $symbol, $sort);
 
 
-echo "</body>";
-echo "</html>";
+echo '</body>';
+echo '</html>';

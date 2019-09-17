@@ -1,13 +1,19 @@
 <?php
 
-require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../xhprof_lib/utils/xhprof_runs.php';
+require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../../xhprof_lib/utils/xhprof_runs.php';
 
 class XHProfRuns_Ol extends XHProfRuns_Default
 {
-    const BASE_URL = './../../xhprof_html/index.php';
     const CUSTOM_COMMENTS_FILE_SUFFIX = 'comment';
 	protected $dir;
 	protected $suffix = 'xhprof';
+
+    public static function getRelativeUrlToOriginalDir()
+    {
+        $dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+        $dir = str_replace('/xhprof_new/xhprof_html', '', $dir);
+        return $dir;
+    }
 
 	public function __construct($dir = null)
 	{
@@ -30,7 +36,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 		if (is_dir($this->dir)) {
 			?>
             <div>
-                <form action="./../xhprof_html/index.php" method="post">
+                <form action="" method="post">
                     <div class="sticky" >
                         <table width="100%">
                             <tr>
@@ -59,7 +65,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                         </table>
                     </div>
                     <h3 align="center">Available runs</h3>
-                    <table border="1" cellpadding="2" cellspacing="1" width="100%" rules="all" bordercolor="#bdc7d8" align="center">
+                    <table border="1" cellpadding="2" cellspacing="1" width="100%" rules="all" bordercolor="#bdc7d8" align="center" class="highlighted">
                         <tr bgcolor="#bdc7d8">
                             <th>Date</th>
                             <th>Run</th>
@@ -115,17 +121,17 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 
     public static function getRunReportLink($run, $source)
     {
-        return self::BASE_URL . '?run=' . htmlentities($run) . '&source=' . htmlentities($source);
+        return self::getRelativeUrlToOriginalDir() . '?run=' . htmlentities($run) . '&source=' . htmlentities($source);
     }
 
     public static function getDiffRunsReportLink($run1, $run2, $source)
     {
-        return self::BASE_URL . '?run1=' . htmlentities($run1) . '&run2=' . htmlentities($run2) . '&source=' . htmlentities($source);
+        return self::getRelativeUrlToOriginalDir() . '?run1=' . htmlentities($run1) . '&run2=' . htmlentities($run2) . '&source=' . htmlentities($source);
     }
 
     public static function getAggregateRunsReportLink($run, $source, $wts)
     {
-        $url = self::BASE_URL . '?run=' . htmlentities($run) . '&source=' . htmlentities($source);
+        $url = self::getRunReportLink($run, $source);
         if ($wts) {
             $url .= '&wts=' . $wts;
         }
