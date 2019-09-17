@@ -1,4 +1,4 @@
-#Xhprof Admin
+# Xhprof Admin
 This tool is based on original GUI for Xhprof from Facebook. 
 
 It allows to:
@@ -17,10 +17,10 @@ the same namespace (against of the same namesapace of runs in native Xhprof GUI)
 2. Just open address ./xhprof_html/xhprof_admin/
 You should start /xhprof_admin/ if mapping is set to xhprof_html
 
-##Admin page
+## Admin page
 
-##Compare report
+## Compare report
 
-##Custom comments
+## Custom comments
 
-##Deleting runs
+## Deleting runs
