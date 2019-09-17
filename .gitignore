@@ -20,6 +20,4 @@ tmp/*
 .idea
 .idea/*
 
-xhprof_html
-xhprof_html/xhprof_html
-!xhprof_html/xhprof_html/*
+!xhprof_html

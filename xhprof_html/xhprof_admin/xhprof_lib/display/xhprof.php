@@ -166,8 +166,7 @@ class Ol_Xhprof_Report
 
     public static function includeCss()
     {
-        // style sheets
-        echo "<link href='" . XHProfRuns_Ol::getRelativeUrlToOriginalDir() . "/xhprof_new/xhprof_html/css/xhprof.css' rel='stylesheet' type='text/css' />";
+        echo "<link href='" . XHProfRuns_Ol::getRelativeUrlToOriginalDir() . "/xhprof_admin/xhprof_html/css/xhprof.css' rel='stylesheet' type='text/css' />";
     }
 
     protected static function printTableHeader(array $arRunsInfo, array $arSources, array $arMetrics, $url_params, $printAverage = true)
