@@ -53,7 +53,6 @@ if (array_key_exists('compare_runs', $_REQUEST)) {
 echo '<html lang="en">';
 
 echo '<head><title>XHProf: Hierarchical Profiler Report</title>';
-xhprof_include_js_css(XHProfRuns_Ol::getRelativeUrlToOriginalDir());
 Ol_Xhprof_Report::includeCss();
 echo '</head>';
 

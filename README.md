@@ -10,7 +10,6 @@ the same namespace (against of the same namesapace of runs in native Xhprof GUI)
 
 ## Prerequisites
 - PHP 5.6 or latter
-- 
 
 ## Installation
 1. See original documentation:

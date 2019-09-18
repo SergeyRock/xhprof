@@ -166,7 +166,7 @@ class Ol_Xhprof_Report
 
     public static function includeCss()
     {
-        echo "<link href='" . XHProfRuns_Ol::getRelativeUrlToOriginalDir() . "/xhprof_admin/xhprof_html/css/xhprof.css' rel='stylesheet' type='text/css' />";
+        echo "<link href='" . XHProfRuns_Ol::getRelativeUrlToOriginalDir() . "xhprof_admin/xhprof_html/css/xhprof.css' rel='stylesheet' type='text/css' />";
     }
 
     protected static function printTableHeader(array $arRunsInfo, array $arSources, array $arMetrics, $url_params, $printAverage = true)
@@ -261,6 +261,7 @@ class Ol_Xhprof_Report
 				$runParam = explode(',', $url_params['run'])[$i];
 				$sourceParam = explode(',', $url_params['source'])[$i];
 				$funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
+
 				$href = XHProfRuns_Ol::getRelativeUrlToOriginalDir() . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
 				
 				$pattern = '#(<td[^>]+>)(.+?)([\s]+<.+)#sui';

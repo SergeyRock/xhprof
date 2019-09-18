@@ -11,7 +11,8 @@ class XHProfRuns_Ol extends XHProfRuns_Default
     public static function getRelativeUrlToOriginalDir()
     {
         $dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-        $dir = str_replace('/xhprof_admin/xhprof_html', '', $dir);
+        $dir = str_replace('xhprof_admin/xhprof_html', '', $dir);
+
         return $dir;
     }
 
