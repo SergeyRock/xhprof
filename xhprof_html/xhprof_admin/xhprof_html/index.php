@@ -52,7 +52,7 @@ if (array_key_exists('compare_runs', $_REQUEST)) {
 
 echo '<html lang="en">';
 
-echo '<head><title>XHProf: Hierarchical Profiler Report</title>';
+echo '<head><title>XHProf Admin: Hierarchical Profiler Report</title>';
 Ol_Xhprof_Report::includeCss();
 echo '</head>';
 
@@ -66,7 +66,7 @@ $vrbar = ' class="vrbar"';
 $vgbar = ' class="vgbar"';
 
 Ol_Xhprof_Report::displayXHProfReportCompare($obXhprofRuns, $params, $source, $run, $symbol, $sort);
-
+Ol_Xhprof_Report::printFooter();
 
 echo '</body>';
 echo '</html>';

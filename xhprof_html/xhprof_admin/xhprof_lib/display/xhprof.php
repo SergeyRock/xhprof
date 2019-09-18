@@ -19,8 +19,8 @@ class Ol_Xhprof_Report
     {
         global $totals;
         if ($runs) {
-            $arRuns = explode(",", $runs);
-            $arSources = explode(",", $sources);
+            $arRuns = explode(',', $runs);
+            $arSources = explode(',', $sources);
             $runsCount = count($arRuns);
 
             $isOneRun = $runsCount === 1;
@@ -36,8 +36,9 @@ class Ol_Xhprof_Report
                     <div style="float: left;">Each run is compared with the base run <b><?= $arRuns[0] ?></b></div>
                     <?php
                 }
+                $url = XHProfRuns_Ol::getRunListLink();
                 ?>
-                <div style="float: right;font-weight:bold;"><a href="./index.php">View all available runs →</a></div>
+                <div style="float: right;font-weight:bold;"><a href="<?= $url ?>">View all available runs →</a></div>
             </div>
             <?php
 
@@ -69,7 +70,7 @@ class Ol_Xhprof_Report
                 $limit = 100;  // display only limited number of rows
             }
 
-            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit, $isOneRun);
+            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit, $isOneRun === false);
         } elseif (method_exists($obXhprofRuns, 'list_runs')) {
             $obXhprofRuns->list_runs();
         }
@@ -203,8 +204,9 @@ class Ol_Xhprof_Report
                     $header = $desc;
                 }
                 $cssClass = $sort_col === $stat ? ' sorted' : '';
+                $thColspan = $colspan > 1 ? ' colspan="' . $colspan . '" ' : '';
                 ?>
-                <th class="first-header-row vwbar left-separator<?= $cssClass ?>" colspan="<?= $colspan ?>"><?= $header ?></th>
+                <th class="first-header-row vwbar left-separator<?= $cssClass ?>" <?= $thColspan ?>><?= $header ?></th>
                 <?php
             }
             ?>
@@ -341,5 +343,12 @@ class Ol_Xhprof_Report
             <?php
             $limit--;
         }
+    }
+
+    public static function printFooter()
+    {
+        ?>
+        <div class="footer"><span>&copy; Sergey Oleynikov, 2019</span>. <span><a href="https://github.com/SergeyRock/xhprof-admin" target="_blank">https://github.com/SergeyRock/xhprof-admin</a></span></div>
+        <?php
     }
 }

@@ -12,6 +12,9 @@ class XHProfRuns_Ol extends XHProfRuns_Default
     {
         $dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
         $dir = str_replace('xhprof_admin/xhprof_html', '', $dir);
+        if ($dir !== '/') {
+            $dir .= '/';
+        }
 
         return $dir;
     }
@@ -43,20 +46,26 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                             <tr>
                                 <td style="vertical-align: top">
                                     <div class="control-element">
-                                        <input name="compare_runs" title="Choose runs to compare" type="submit" value="Compare runs"> – 1) select <b>runs</b>, 2) set <b>sort</b> value (the base run must have the smallest value)
+                                        <input name="compare_runs" title="Choose runs to compare" type="submit" value="Compare runs"> –
+                                        1) select <b>runs</b>;
+                                        2) set <b>sort</b> value (the base run must have the smallest value);
+                                        3) Set  <label for="calc_average"><b>calc average</b></label> →  <input type="checkbox" value="Y" name="calc_average" id="calc_average"> (if needed)
                                     </div>
                                     <div class="control-element">
-                                        <input name="diff_runs" title="Choose runs to diff" type="submit" value="Diff runs"> – 1) select two <b>runs</b> (namespaces of both runs must be the same), 2) set <b>sort</b> value
+                                        <input name="diff_runs" title="Choose runs to diff" type="submit" value="Diff runs"> –
+                                        1) select two <b>runs</b> (namespaces of both runs must be the same);
+                                        2) set <b>sort</b> value
                                     </div>
                                     <div class="control-element">
-                                        <input name="aggregate_runs" title="Choose runs to aggregate" type="submit" value="Aggregate runs"> – 1) select <b>runs</b> (namespaces of all runs must be the same); 2) set <b>sort</b> value; 3) set <b>weight</b> of run (if needed)
+                                        <input name="aggregate_runs" title="Choose runs to aggregate" type="submit" value="Aggregate runs"> –
+                                        1) select <b>runs</b> (namespaces of all runs must be the same);
+                                        2) set <b>sort</b> value; 3) set <b>weight</b> of run (if needed)
                                     </div>
                                 </td>
                                 <td style="vertical-align: top">
                                     <div class="control-element" style="text-align: right;" >
                                         <input name="delete_runs" id="delete_runs" style="display:none;" type="submit" value="Delete selected runs">
-                                        <input onclick="return confirm('Are you sure?') ? document.getElementById('delete_runs').click() : false;" type="button"
-                                               value="Delete selected runs">
+                                        <input onclick="return confirm('Are you sure?') ? document.getElementById('delete_runs').click() : false;" type="button" value="Delete selected runs">
                                     </div>
                                     <div class="control-element" style="text-align: right;">
                                         <input name="save_comments" type="submit" value="Save custom comments">
@@ -113,9 +122,9 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                 'callgraph_url' => self::getCallgraphLink($arRuns[$i], $arSources[$i]),
             ];
 
-            $arRunInfo['original_report_href'] = "<a href='{$arRunInfo['original_report_url']}'>view original report</a>";
+            $arRunInfo['original_report_href'] = "<a target='_blank' href='{$arRunInfo['original_report_url']}'>view original report</a>";
             $arRunInfo['new_report_href'] = "<a href='{$arRunInfo['new_report_url']}'>view new report</a>";
-            $arRunInfo['callgraph_href'] = "<a href='{$arRunInfo['callgraph_url']}'>view callgraph</a>";
+            $arRunInfo['callgraph_href'] = "<a target='_blank' href='{$arRunInfo['callgraph_url']}'>view callgraph</a>";
 
             if(file_exists($arRunInfo['file'])) {
                 $arRunInfo['file_date'] = date('Y-m-d H:i:s', filemtime($arRunInfo['file']));
@@ -153,9 +162,14 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         return self::getRelativeUrlToOriginalDir() . '?run=' . htmlentities($run) . '&source=' . htmlentities($source);
     }
 
-    public static function getNewReportRunLink($run, $source)
+    public static function getNewReportRunLink($run, $source, $average = 0)
     {
-        return self::getRelativeUrlToOriginalDir() . 'xhprof_admin/xhprof_html/?run=' . htmlentities($run) . '&source=' . htmlentities($source);
+        return self::getRelativeUrlToOriginalDir() . 'xhprof_admin/xhprof_html/?run=' . htmlentities($run) . '&source=' . htmlentities($source) . '&average=' . htmlentities($average);
+    }
+
+    public static function getRunListLink()
+    {
+        return self::getRelativeUrlToOriginalDir() . 'xhprof_admin/xhprof_html/';
     }
 
     public static function getCallgraphLink($run, $source)
@@ -224,7 +238,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 
     public static function goToDiffRunsByRequest()
     {
-        list($arRuns, $arSources, $arSorts) = self::getRunsSourcesSortsWeightsFromRequestSorted();
+        list($arRuns, $arSources) = self::getRunsSourcesSortsWeightsFromRequestSorted();
 
         if (count($arRuns) !== 2) {
             echo '<div class="error">Only two runs must be selected.</div>';
@@ -280,7 +294,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
      */
     public static function goToCompareRunsByRequest()
     {
-        list($arRuns, $arSources, $arSorts) = self::getRunsSourcesSortsWeightsFromRequestSorted();
+        list($arRuns, $arSources) = self::getRunsSourcesSortsWeightsFromRequestSorted();
 
         if (count($arRuns) < 2) {
             echo '<div class="error">At least two runs must be selected.</div>';
@@ -290,7 +304,9 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         $runs = implode(',', $arRuns);
         $sources = implode(',', $arSources);
 
-        $redirectUrl = $_SERVER['SCRIPT_NAME'] . "?run=$runs&source=$sources";
+        $calcAverage = array_key_exists('calc_average', $_REQUEST) ? 1 : 0;
+
+        $redirectUrl = self::getNewReportRunLink($runs, $sources, $calcAverage);
         header('HTTP/1.1 301 Moved Permanently');
         header("Location: $redirectUrl");
         exit;
@@ -303,7 +319,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 
     public function getRunCommentFileName($run, $source)
     {
-        return $this->getRunFileName($run, $source) . "." . self::CUSTOM_COMMENTS_FILE_SUFFIX;
+        return $this->getRunFileName($run, $source) . '.' . self::CUSTOM_COMMENTS_FILE_SUFFIX;
 	}
 
 	public function saveCustomCommentsByRequest()
@@ -341,7 +357,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 
     public function deleteSelectedRunsByRequest()
     {
-        list($arRuns, $arSources, $arSorts) = self::getRunsSourcesSortsWeightsFromRequestSorted();
+        list($arRuns, $arSources) = self::getRunsSourcesSortsWeightsFromRequestSorted();
         $runsCount = count($arRuns);
 
         if ($runsCount < 1) {
@@ -362,9 +378,10 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             $arDeletedRuns[] = $arRuns[$i];
         }
 
-        if (!empty($arDeletedRuns)) {
+        $deletedCount = count($arDeletedRuns);
+        if ($deletedCount > 0) {
             $deletedRuns = implode(', ', $arDeletedRuns);
-            echo '<div class="success">Deleted runs: ' . $deletedRuns . '</div>';
+            echo '<div class="success">Deleted runs (' . $deletedCount . '): ' . $deletedRuns . '</div>';
             return true;
         }
 

@@ -145,3 +145,11 @@ span.sorted {
 .highlighted td:hover {
     background-color: #fffb2f;
 }
+
+.footer {
+    background-color: #f1f3f4;
+    border: 1px solid grey;
+    padding: 5px;
+    margin-top: 10px;
+    text-align: center;
+}
