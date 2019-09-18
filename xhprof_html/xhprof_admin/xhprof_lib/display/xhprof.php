@@ -22,9 +22,21 @@ class Ol_Xhprof_Report
             $arRuns = explode(",", $runs);
             $arSources = explode(",", $sources);
             $runsCount = count($arRuns);
+
+            $isOneRun = $runsCount === 1;
             ?>
             <div class="sticky">`
-                <div style="float: left;">Each run is compared with the base run <b><?= $arRuns[0] ?></b></div>
+                <?php
+                if ($isOneRun){
+                    ?>
+                    <div style="float: left;">Run: <b><?= $arRuns[0] ?></b></div>
+                    <?php
+                } else {
+                    ?>
+                    <div style="float: left;">Each run is compared with the base run <b><?= $arRuns[0] ?></b></div>
+                    <?php
+                }
+                ?>
                 <div style="float: right;font-weight:bold;"><a href="./index.php">View all available runs →</a></div>
             </div>
             <?php
@@ -57,7 +69,7 @@ class Ol_Xhprof_Report
                 $limit = 100;  // display only limited number of rows
             }
 
-            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit, count($xhprofData) > 1);
+            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit, $isOneRun);
         } elseif (method_exists($obXhprofRuns, 'list_runs')) {
             $obXhprofRuns->list_runs();
         }
