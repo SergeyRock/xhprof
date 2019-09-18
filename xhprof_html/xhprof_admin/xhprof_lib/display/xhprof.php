@@ -57,7 +57,7 @@ class Ol_Xhprof_Report
                 $limit = 100;  // display only limited number of rows
             }
 
-            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit);
+            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit, count($xhprofData) > 1);
         } elseif (method_exists($obXhprofRuns, 'list_runs')) {
             $obXhprofRuns->list_runs();
         }
@@ -80,19 +80,22 @@ class Ol_Xhprof_Report
                 <th>Date</th>
                 <th>Run</th>
                 <th>Namespace</th>
+                <th>New report</th>
+                <th>Original report</th>
+                <th>Callgraph</th>
                 <th>Custom comment</th>
                 <th>File size</th>
             </tr>
             <?php
             foreach ($arRunsInfo as $arRunInfo) {
-                $href = XHProfRuns_Ol::getRunReportLink($arRunInfo['run'], $arRunInfo['source']);
-                $url = "<a href='{$href}'>{$arRunInfo['file_date']}</a>";
-
                 ?>
                 <tr>
-                    <td class="table-cell"><?= $url ?></td>
+                    <td class="table-cell"><?= $arRunInfo['file_date'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['run'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['source'] ?></td>
+                    <td class="table-cell"><?= $arRunInfo['new_report_href'] ?></td>
+                    <td class="table-cell"><?= $arRunInfo['original_report_href'] ?></td>
+                    <td class="table-cell"><?= $arRunInfo['callgraph_href'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['comment'] ?></td>
                     <td class="table-cell"><?= xhprof_count_format($arRunInfo['file_size']) ?></td>
                 </tr>
@@ -105,12 +108,9 @@ class Ol_Xhprof_Report
 
     protected static function printTableOfRuns($url_params, $arFlatTabs, $arSymbolTabs, $arRunsInfo, $arSources, $limit = 100, $printAverage = true)
     {
-        self::includeCss();
-
         global $base_path;
         global $sort_col;
         global $descriptions;
-        global $metrics;
         global $stats;
 
         $size = count($arFlatTabs[0]);
@@ -175,6 +175,8 @@ class Ol_Xhprof_Report
 
         $runsCount = count($arRunsInfo);
         $colspan = $printAverage ? $runsCount + 1 : $runsCount;
+
+        $isPrintRunIdInHeader = $runsCount > 1;
         ?>
         <thead>
         <tr>
@@ -195,33 +197,35 @@ class Ol_Xhprof_Report
             }
             ?>
         </tr>
-        <tr>
-            <?php
-            foreach ($arMetrics as $stat) {
-                for ($i = 0; $i < $runsCount; $i++) {
-                    $runInfoWrapped = self::getWrappedTitle($arRunsInfo[$i], 5);
-                    $sourceInfo = htmlentities($arSources[$i]);
-
-                    $href = XHProfRuns_Ol::getRunReportLink($arRunsInfo[$i], $sourceInfo);
-                    $url = "<a title='{$sourceInfo}' href='{$href}'>{$runInfoWrapped}</a>";
-
-                    $additionalClass = '';
-                    if ($i === 0) {
-                        $additionalClass = 'left-separator';
-                    }
-
-                    ?>
-                    <th class="second-header-row vwbar <?= $additionalClass ?>"><?= $url ?></th>
-                    <?php
-                }
-                if ($printAverage) {
-                    ?>
-                    <th class="second-header-row vwbar">Average</th>
-                    <?php
-                }
-            }
+        <?php
+        if ($isPrintRunIdInHeader) {
             ?>
-        </tr>
+            <tr>
+                <?php
+                foreach ($arMetrics as $stat) {
+                    for ($i = 0; $i < $runsCount; $i++) {
+                        $runInfoWrapped = self::getWrappedTitle($arRunsInfo[$i], 5);
+
+                        $additionalClass = '';
+                        if ($i === 0) {
+                            $additionalClass = ' left-separator';
+                        }
+
+                        ?>
+                        <th class="second-header-row vwbar<?= $additionalClass ?>"><?= $runInfoWrapped ?></th>
+                        <?php
+                    }
+                    if ($printAverage) {
+                        ?>
+                        <th class="second-header-row vwbar">Average</th>
+                        <?php
+                    }
+                }
+                ?>
+            </tr>
+            <?php
+        }
+            ?>
         </thead>
         <?php
     }

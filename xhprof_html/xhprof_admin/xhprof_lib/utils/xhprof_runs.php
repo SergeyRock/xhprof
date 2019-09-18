@@ -71,6 +71,9 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                             <th>Date</th>
                             <th>Run</th>
                             <th>Namespace</th>
+                            <th>New report</th>
+                            <th>Original report</th>
+                            <th>Callgraph</th>
                             <th>Sort</th>
                             <th>Weight, %</th>
                             <th>Custom comment</th>
@@ -102,27 +105,62 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             $arRunInfo = [
                 'run' => $arRuns[$i],
                 'source' => $arSources[$i],
+                'run_source' => $arRuns[$i] . '.' . $arSources[$i],
                 'file' => $this->getRunFileName($arRuns[$i], $arSources[$i]),
                 'comment_file' => $this->getRunCommentFileName($arRuns[$i], $arSources[$i]),
+                'original_report_url' => self::getOriginalReportRunLink($arRuns[$i], $arSources[$i]),
+                'new_report_url' => self::getNewReportRunLink($arRuns[$i], $arSources[$i]),
+                'callgraph_url' => self::getCallgraphLink($arRuns[$i], $arSources[$i]),
             ];
 
-            if(file_exists($arRunInfo['file'])) {
-                $arRunInfo['file_date'] = date("Y-m-d H:i:s", filemtime($arRunInfo['file']));
-                $arRunInfo['file_size'] = filesize($arRunInfo['file']);
+            $arRunInfo['original_report_href'] = "<a href='{$arRunInfo['original_report_url']}'>view original report</a>";
+            $arRunInfo['new_report_href'] = "<a href='{$arRunInfo['new_report_url']}'>view new report</a>";
+            $arRunInfo['callgraph_href'] = "<a href='{$arRunInfo['callgraph_url']}'>view callgraph</a>";
 
+            if(file_exists($arRunInfo['file'])) {
+                $arRunInfo['file_date'] = date('Y-m-d H:i:s', filemtime($arRunInfo['file']));
+                $arRunInfo['file_size'] = filesize($arRunInfo['file']);
+                $arRunInfo['file_size_formatted'] = xhprof_count_format($arRunInfo['file_size']);
             }
             if(file_exists($arRunInfo['comment_file'])) {
                 $arRunInfo['comment'] = json_decode(file_get_contents($arRunInfo['comment_file']));
             }
+
+            // additional highlighted source part
+            $search = "/(.+)_(page)(.+)_(userId)_([\d]+)/ui";
+            $replace = "[<span style='color:red'>$2</span>=<b>###$3###</b>] [<span style='color:green'>$4</span>=<b>$5</b>]";
+            $highlightedSource = preg_replace($search, $replace, $arSources[$i]);
+
+            $search = "/###(.+)###/su";
+            if (preg_match($search, $highlightedSource, $matches)) {
+                $matches[1] = str_replace('_', '/', $matches[1]);
+                $highlightedSource = preg_replace($search, $matches[1], $highlightedSource);
+            }
+
+            if ($highlightedSource === $arSources[$i]) {
+                $highlightedSource = '';
+            }
+
+            $arRunInfo['$highlighted_source'] = $highlightedSource;
 
             $arRunInfos[] = $arRunInfo;
         }
         return $arRunInfos;
     }
 
-    public static function getRunReportLink($run, $source)
+    public static function getOriginalReportRunLink($run, $source)
     {
         return self::getRelativeUrlToOriginalDir() . '?run=' . htmlentities($run) . '&source=' . htmlentities($source);
+    }
+
+    public static function getNewReportRunLink($run, $source)
+    {
+        return self::getRelativeUrlToOriginalDir() . 'xhprof_admin/xhprof_html/?run=' . htmlentities($run) . '&source=' . htmlentities($source);
+    }
+
+    public static function getCallgraphLink($run, $source)
+    {
+        return self::getRelativeUrlToOriginalDir() . 'callgraph.php?run=' . htmlentities($run) . '&source=' . htmlentities($source);
     }
 
     public static function getDiffRunsReportLink($run1, $run2, $source)
@@ -132,7 +170,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 
     public static function getAggregateRunsReportLink($run, $source, $wts)
     {
-        $url = self::getRunReportLink($run, $source);
+        $url = self::getOriginalReportRunLink($run, $source);
         if ($wts) {
             $url .= '&wts=' . $wts;
         }
@@ -142,48 +180,28 @@ class XHProfRuns_Ol extends XHProfRuns_Default
     protected function printHtmlRow($fileName, $sort)
     {
         list($run, $source) = explode('.', basename($fileName));
-        $source = htmlentities($source);
 
-        $search = "/(.+)_(page)(.+)_(userId)_([\d]+)/ui";
-        $replace = "[<span style='color:red'>$2</span>=<b>###$3###</b>] [<span style='color:green'>$4</span>=<b>$5</b>]";
-        $highlightedSource = preg_replace($search, $replace, $source);
-
-        $search = "/###(.+)###/su";
-        if (preg_match($search, $highlightedSource, $matches)) {
-            $matches[1] = str_replace('_', '/', $matches[1]);
-            $highlightedSource = preg_replace($search, $matches[1], $highlightedSource);
-        }
-
-        if ($highlightedSource === $source) {
-            $highlightedSource = '';
-        }
-
-        $url = self::getRunReportLink($run, $source);
-        $runId = $run . '.' . $source;
-
-        $comment = '';
-        $fileComment = $this->getRunCommentFileName($run, $source);
-        if (file_exists($fileComment)) {
-            $comment = file_get_contents($fileComment);
-            $comment = json_decode($comment);
-        }
+        $arRunInfos = $this->getRunsInfo([$run], [$source]);
+        $arRunInfo = $arRunInfos[0];
+        $runId = $arRunInfo['run_source'];
 
         ?>
         <tr>
-            <td>
-                <a href="<?= $url ?>"><?= date('Y-m-d H:i:s', filemtime($fileName)) ?></a>
-            </td>
+            <td><?= $arRunInfo['file_date'] ?></td>
             <td>
                 <input type="checkbox" value="<?= $runId ?>" name="runs[]" id="<?= $runId ?>">
-                <label for="<?= $runId ?>"><?= htmlentities($run) ?></label>
+                <label for="<?= $runId ?>"><?= htmlentities($arRunInfo['run']) ?></label>
             </td>
-            <td><?= htmlentities($source) ?><br><?= $highlightedSource ?></td>
+            <td><?= htmlentities($arRunInfo['source']) ?><br><?= $arRunInfo['highlighted_source'] ?></td>
+            <td><?= $arRunInfo['new_report_href'] ?></td>
+            <td><?= $arRunInfo['original_report_href'] ?></td>
+            <td><?= $arRunInfo['callgraph_href'] ?></td>
             <td><input type="number" value="<?= $sort ?>" name="sort[<?=$runId?>]" step="10" autocomplete="off"></td>
             <td><input type="number" value="0" min="0" max="100"  name="weight[<?=$runId?>]" step="10" autocomplete="off" class="weight"></td>
             <td>
-                <textarea name="comment[<?=$runId?>]" rows="2" class="custom_comment"><?= htmlentities($comment) ?></textarea>
+                <textarea name="comment[<?=$runId?>]" rows="2" class="custom_comment"><?= htmlentities($arRunInfo['comment']) ?></textarea>
             </td>
-            <td><?= xhprof_count_format(filesize($fileName)) ?></td>
+            <td><?= $arRunInfo['file_size_formatted'] ?></td>
         </tr>
         <?php
     }
