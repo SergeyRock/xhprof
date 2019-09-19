@@ -32,11 +32,11 @@ To compare two and more runs:
 3. Check **calc average** if you need to print average values of each function metric.
 4. Click **Compare runs** 
 
-![N|Solid](https://www.uchitel-izd.ru/upload/files/clip2net/ol/2019/09.18-26296.png)
+![N|Solid](https://www.uchitel-izd.ru/upload/files/clip2net/ol/2019/09.19-1463.png )
 
 The view of report:
-![N|Solid](https://www.uchitel-izd.ru/upload/files/clip2net/ol/2019/09.18-27681.png)
-Each metric column separated with bold line and consists of runs columns.
+![N|Solid](https://www.uchitel-izd.ru/upload/files/clip2net/ol/2019/09.19-1940.png)
+Each metric column is separated with bold line and consists of runs columns.
  
 You can drill down into function report of a run by clicking on the cell in sorted metric column.
 
@@ -47,6 +47,10 @@ Only top 100 functions are printed by default. To display all functions click **
 Improvements are marked with green color, regressions with red. 
 
 Click to **View all available runs** to return to the **Admin page**.
+
+Click to **Show/hide average values** to add/remove average metric in the table.
+
+To exclude run from report click on **exclude** in **Compared runs info** table.
 
 ## Custom comments
 You can set custom comments to each run on **Admin Page** by typing in **custom comment** column and clicking on 

@@ -42,7 +42,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             <div>
                 <form action="" method="post">
                     <div class="sticky" >
-                        <table width="100%">
+                        <table width="100%" rule="rows">
                             <tr>
                                 <td style="vertical-align: top">
                                     <div class="control-element">
@@ -70,25 +70,33 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                                     <div class="control-element" style="text-align: right;">
                                         <input name="save_comments" type="submit" value="Save custom comments">
                                     </div>
+                                    <div class="control-element" style="text-align: right;">
+                                        <?php
+                                        Ol_Xhprof_Report::printOriginalReportLink();
+                                        ?>
+                                    </div>
                                 </td>
                             </tr>
                         </table>
                     </div>
                     <h3 align="center">Available runs</h3>
-                    <table border="1" cellpadding="2" cellspacing="1" width="100%" rules="all" bordercolor="#bdc7d8" align="center" class="highlighted">
-                        <tr bgcolor="#bdc7d8">
-                            <th>Date</th>
-                            <th>Run</th>
-                            <th>Namespace</th>
-                            <th>New report</th>
-                            <th>Original report</th>
-                            <th>Callgraph</th>
-                            <th>Sort</th>
-                            <th>Weight, %</th>
-                            <th>Custom comment</th>
-                            <th>File size</th>
-                        </tr>
-						<?php
+                    <table border="1" cellpadding="2" cellspacing="1" width="100%" rules="rows" align="center" class="highlighted">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Run</th>
+                                <th>Namespace</th>
+                                <th>New report</th>
+                                <th>Original report</th>
+                                <th>Callgraph</th>
+                                <th>Sort</th>
+                                <th>Weight, %</th>
+                                <th width="40%">Custom comment</th>
+                                <th>File size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php
 						$files = glob("{$this->dir}/*.{$this->suffix}");
 						usort($files, function($a, $b){return filemtime($b) - filemtime($a);});
 						$i = count($files) * 10;
@@ -97,6 +105,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 							$this->printHtmlRow($file, $i);
 						}
 						?>
+                        </tbody>
                     </table>
                 </form>
             </div>
@@ -132,7 +141,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                 $arRunInfo['file_size_formatted'] = xhprof_count_format($arRunInfo['file_size']);
             }
             if(file_exists($arRunInfo['comment_file'])) {
-                $arRunInfo['comment'] = json_decode(file_get_contents($arRunInfo['comment_file']));
+                $arRunInfo['comment'] = json_decode(file_get_contents($arRunInfo['comment_file']), true);
             }
 
             // additional highlighted source part
@@ -149,6 +158,18 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             if ($highlightedSource === $arSources[$i]) {
                 $highlightedSource = '';
             }
+
+            // prepare url for excluding run from compare report
+            parse_str($_SERVER['QUERY_STRING'], $arUrl);
+            $arUrl['run'] = explode(',', $arUrl['run']);
+            $arUrl['source'] = explode(',', $arUrl['source']);
+
+            unset($arUrl['run'][$i], $arUrl['source'][$i]);
+
+            $arUrl['run'] = implode(',', $arUrl['run']);
+            $arUrl['source'] = implode(',', $arUrl['source']);
+            $arRunInfo['exclude_url'] = self::getNewReportRunLink($arUrl['run'], $arUrl['source'], $arUrl['average']);
+            $arRunInfo['exclude_href'] = "<a href='{$arRunInfo['exclude_url']}'>exclude</a>";
 
             $arRunInfo['$highlighted_source'] = $highlightedSource;
 
@@ -167,7 +188,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         return self::getRelativeUrlToOriginalDir() . 'xhprof_admin/xhprof_html/?run=' . htmlentities($run) . '&source=' . htmlentities($source) . '&average=' . htmlentities($average);
     }
 
-    public static function getRunListLink()
+    public static function getNewReportRunListLink()
     {
         return self::getRelativeUrlToOriginalDir() . 'xhprof_admin/xhprof_html/';
     }
@@ -366,24 +387,46 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         }
 
         $arDeletedRuns = [];
+        $arErrRuns = [];
+        $arErrRunsComments = [];
         for ($i = 0; $i < $runsCount; $i++) {
             $file = $this->getRunFileName($arRuns[$i], $arSources[$i]);
             if (file_exists($file)) {
-                unlink($file);
+                if(unlink($file) === false) {
+                    $arErrRuns[] = $arRuns[$i];
+                } else {
+                    $arDeletedRuns[] = $arRuns[$i];
+                }
             }
             $file = $this->getRunCommentFileName($arRuns[$i], $arSources[$i]);
             if (file_exists($file)) {
-                unlink($file);
+                if(unlink($file) === false) {
+                    $arErrRunsComments[] = $arRuns[$i];
+                }
             }
-            $arDeletedRuns[] = $arRuns[$i];
         }
 
         $deletedCount = count($arDeletedRuns);
         if ($deletedCount > 0) {
             $deletedRuns = implode(', ', $arDeletedRuns);
             echo '<div class="success">Deleted runs (' . $deletedCount . '): ' . $deletedRuns . '</div>';
-            return true;
         }
 
+        $errRunsCount = count($arErrRuns);
+        if($errRunsCount > 0) {
+            $errRuns = implode(', ', $arErrRuns);
+            echo '<div class="error">Unable to delete runs (' . $errRunsCount . '): ' . $errRuns . '</div>';
+        }
+
+        $errRunsCommentsCount = count($arErrRunsComments);
+        if($errRunsCommentsCount > 0) {
+            $errComments = implode(', ', $arErrRunsComments);
+            echo '<div class="error">Unable to delete comments of runs (' . $errRunsCommentsCount . '): ' . $errComments . '</div>';
+        }
+    }
+
+    public static function needPrintAverageByRequest()
+    {
+        return array_key_exists('average', $_REQUEST) && (int)$_REQUEST['average'] === 1;
     }
 }

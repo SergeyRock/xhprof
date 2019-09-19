@@ -21,57 +21,76 @@ p.blue {
 New css is placed above
  */
 
-tr:nth-child(2n) {
+table.highlighted {
+    border-color: #bdc7d8;
+}
+
+table.highlighted tbody tr:nth-child(2n+1) {
+    background-color: white;
+}
+
+table.highlighted tbody tr:nth-child(2n) {
     background-color: #e5e5e5;
 }
 
-td.vwbar, th.vwbar {
-    white-space: pre-wrap;
-    text-align: center;
-    border-left: solid 1px white;
+table.highlighted thead tr {
+    background-color: #bdc7d8;
 }
 
-td.vbar, th.vbar {
+table.highlighted tbody tr:hover {
+    background-color: #cedbf3;
+    border-bottom: 1px dotted #999;
+}
+
+table.highlighted td.vwbar, th.vwbar {
+    white-space: pre-wrap;
+    text-align: center;
+}
+
+table.highlighted td.vbar, th.vbar {
     vertical-align: top;
     text-align: right;
+}
+
+table.highlighted thead th {
+    border-left: solid 1px #e5e5e5;
+}
+table.highlighted td.vbbar, th.vbar {
+    vertical-align: top;
+}
+
+table.highlighted tbody td {
+    white-space: nowrap;
     border-left: solid 1px #bdc7d8;
 }
 
-td.vbbar, th.vbar {
-    vertical-align: top;
-}
-
-td {
-    white-space: nowrap;
-}
-
 td span.better {
-    background-color: #57ab57;
+    background-color: #8aba83;
     color: white;
     font-size: small;
     padding: 0 3px;
 }
 
-td span.worse {
-    background-color: #ff8686;
+table.highlighted tbody td span.worse {
+    background-color: #fba2a2;
     color: white;
     font-size: small;
     padding: 0 3px;
 }
 
-td input[type=number] {
+table.highlighted tbody td input[type=number] {
     width: 60px;
 }
 
-td input[type=number].weight {
+table.highlighted tbody td input[type=number].weight {
     width: 43px;
 }
 
-td textarea.custom_comment {
+table.highlighted tbody td textarea.custom_comment {
     width: 100%;
 }
 
-td.table-cell {
+table.highlighted tbody td.table-cell {
     border-left: solid 1px #bdc7d8;
 }
 
@@ -115,11 +134,7 @@ div.control-element {
 }
 
 td.left-separator, th.left-separator {
-    border-left: 2px solid #3a3a3a;
-}
-
-table.highlighted tr:hover {
-    background-color: #cedbf3;
+    border-left: 2px solid #3a3a3a!important;
 }
 
 .quite-url {

@@ -17,28 +17,39 @@ class Ol_Xhprof_Report
      */
     public static function displayXHProfReportCompare($obXhprofRuns, $urlParams, $sources, $runs, $symbol, $sort)
     {
-        global $totals;
+        global $totals, $base_path;
         if ($runs) {
             $arRuns = explode(',', $runs);
             $arSources = explode(',', $sources);
             $runsCount = count($arRuns);
 
             $isOneRun = $runsCount === 1;
+            $url = XHProfRuns_Ol::getNewReportRunListLink();
             ?>
-            <div class="sticky">`
+            <div class="sticky">
+                <div style="float: right;font-weight:bold;"><a href="<?= $url ?>">View all available runs →</a></div>
                 <?php
-                if ($isOneRun){
+                if ($isOneRun) {
                     ?>
                     <div style="float: left;">Run: <b><?= $arRuns[0] ?></b></div>
                     <?php
                 } else {
+                    if (XHProfRuns_Ol::needPrintAverageByRequest() === false) {
+                        $showHideWord = 'Show';
+                        $averageValue = 1;
+                    } else {
+                        $showHideWord = 'Hide';
+                        $averageValue = 0;
+                    }
+                    $showAverageHref = xhprof_render_link("{$showHideWord} average values", "$base_path/?" . http_build_query(xhprof_array_set($urlParams, 'average', $averageValue)));
                     ?>
+                    <div style="float: right; margin-right: 20px;"><?= $showAverageHref ?></div>
                     <div style="float: left;">Each run is compared with the base run <b><?= $arRuns[0] ?></b></div>
                     <?php
                 }
-                $url = XHProfRuns_Ol::getRunListLink();
+
                 ?>
-                <div style="float: right;font-weight:bold;"><a href="<?= $url ?>">View all available runs →</a></div>
+                <div>&nbsp;</div>
             </div>
             <?php
 
@@ -70,7 +81,7 @@ class Ol_Xhprof_Report
                 $limit = 100;  // display only limited number of rows
             }
 
-            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit, $isOneRun === false);
+            self::printTableOfRuns($urlParams, $arFlatSymbolTabs, $arSymbolTabs, $arRuns, $arSources, $limit);
         } elseif (method_exists($obXhprofRuns, 'list_runs')) {
             $obXhprofRuns->list_runs();
         }
@@ -83,22 +94,33 @@ class Ol_Xhprof_Report
     {
         $arRunsInfo = $obXhprofRuns->getRunsInfo($arRuns, $arSources);
 
-        if (empty($arRunsInfo)) {
+        $runsInfoCount = count($arRunsInfo);
+        if ($runsInfoCount === 0) {
             return;
         }
+        if ($runsInfoCount === 1) {
+            $title = 'Run info';
+        } else {
+            $title = 'Comparing runs info';
+        }
+
         ?>
-        <h3 align="center">Compared runs info</h3>
-        <table border="1" cellpadding="2" cellspacing="1" rules="rows" bordercolor="#bdc7d8" align="center" width="100%" class="highlighted">
-            <tr bgcolor="#bdc7d8">
+        <h3 align="center"><?= $title?></h3>
+        <table border="1" cellpadding="2" cellspacing="1" width="100%" rules="rows" align="center" class="highlighted">
+            <thead>
+            <tr>
                 <th>Date</th>
                 <th>Run</th>
                 <th>Namespace</th>
                 <th>New report</th>
                 <th>Original report</th>
                 <th>Callgraph</th>
-                <th>Custom comment</th>
+                <th title="Exclude run from comparing">Exclude</th>
+                <th width="40%">Custom comment</th>
                 <th>File size</th>
             </tr>
+            </thead>
+            <tbody>
             <?php
             foreach ($arRunsInfo as $arRunInfo) {
                 ?>
@@ -109,17 +131,19 @@ class Ol_Xhprof_Report
                     <td class="table-cell"><?= $arRunInfo['new_report_href'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['original_report_href'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['callgraph_href'] ?></td>
+                    <td class="table-cell"><?= $arRunInfo['exclude_href'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['comment'] ?></td>
-                    <td class="table-cell"><?= xhprof_count_format($arRunInfo['file_size']) ?></td>
+                    <td class="table-cell"><?= $arRunInfo['file_size_formatted'] ?></td>
                 </tr>
                 <?php
             }
             ?>
+            </tbody>
         </table>
         <?php
     }
 
-    protected static function printTableOfRuns($url_params, $arFlatTabs, $arSymbolTabs, $arRunsInfo, $arSources, $limit = 100, $printAverage = true)
+    protected static function printTableOfRuns($url_params, $arFlatTabs, $arSymbolTabs, $arRunsInfo, $arSources, $limit = 100)
     {
         global $base_path;
         global $sort_col;
@@ -149,9 +173,9 @@ class Ol_Xhprof_Report
         $title .= "Sorted by <span class='sorted'>$desc</span> ";
 
         ?>
-        <h3 align=center><?= $title ?> [ <?=$display_link ?> ]</h3>
+        <h3 align=center><?= $title ?> [ <?= $display_link ?> ]</h3>
 
-        <table border=1 cellpadding=2 cellspacing=1 width="100%" rules="rows" bordercolor="#bdc7d8" align="center" class="highlighted">
+        <table border=1 cellpadding=2 cellspacing=1 width="100%" rules="rows" align="center" class="highlighted">
             <?php
             $arMetrics = array_diff($stats, ['fn']);
 
@@ -163,6 +187,7 @@ class Ol_Xhprof_Report
                 }
             }
 
+            $printAverage = XHProfRuns_Ol::needPrintAverageByRequest() && count($arRunsInfo) > 1;
             self::printTableHeader($arRunsInfo, $arSources, $arMetricsWoPercents, $url_params, $printAverage);
             self::printTableBody($url_params, $arFlatTabs, $arSymbolTabs, $limit, $printAverage, $arMetricsWoPercents);
             ?>
@@ -239,7 +264,7 @@ class Ol_Xhprof_Report
             </tr>
             <?php
         }
-            ?>
+        ?>
         </thead>
         <?php
     }
@@ -273,19 +298,19 @@ class Ol_Xhprof_Report
             if ($i === 0) {
                 $tdContent = str_replace('class="', 'class="left-separator ', $tdContent);
             }
-			
-			// set link for current sorted column cells only
-			if ($sort_col === $metricCode) {
-				$runParam = explode(',', $url_params['run'])[$i];
-				$sourceParam = explode(',', $url_params['source'])[$i];
-				$funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
 
-				$href = XHProfRuns_Ol::getRelativeUrlToOriginalDir() . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
-				
-				$pattern = '#(<td[^>]+>)(.+?)([\s]+<.+)#sui';
-				$tdContent = preg_replace($pattern, "$1<a class='quite-url' href='{$href}'>$2</a>$3", $tdContent);
-			}
-			
+            // set link for current sorted column cells only
+            if ($sort_col === $metricCode) {
+                $runParam = explode(',', $url_params['run'])[$i];
+                $sourceParam = explode(',', $url_params['source'])[$i];
+                $funcUrlParams = ['run' => $runParam, 'source' => $sourceParam];
+
+                $href = XHProfRuns_Ol::getRelativeUrlToOriginalDir() . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
+
+                $pattern = '#(<td[^>]+>)(.+?)([\s]+<.+)#sui';
+                $tdContent = preg_replace($pattern, "$1<a class='quite-url' target='_blank' href='{$href}'>$2</a>$3", $tdContent);
+            }
+
             echo $tdContent;
         }
         if ($printAverage) {
@@ -345,10 +370,26 @@ class Ol_Xhprof_Report
         }
     }
 
+    public static function printHeadSection()
+    {
+        echo '<head><title>XHProf Admin: Hierarchical Profiler Report</title>';
+        self::includeCss();
+        echo '</head>';
+    }
+
     public static function printFooter()
     {
         ?>
-        <div class="footer"><span>&copy; Sergey Oleynikov, 2019</span>. <span><a href="https://github.com/SergeyRock/xhprof-admin" target="_blank">https://github.com/SergeyRock/xhprof-admin</a></span></div>
+        <div class="footer"><span>&copy; Sergey Oleynikov, 2019</span>. <span><a
+                        href="https://github.com/SergeyRock/xhprof-admin" target="_blank">https://github.com/SergeyRock/xhprof-admin</a></span>
+        </div>
+        <?php
+    }
+
+    public static function printOriginalReportLink()
+    {
+        ?>
+        <a target="_blank" href="<?= XHProfRuns_Ol::getRelativeUrlToOriginalDir() ?>">Go to original run list report</a>
         <?php
     }
 }
