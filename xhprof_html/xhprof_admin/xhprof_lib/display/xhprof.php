@@ -352,7 +352,7 @@ class Ol_Xhprof_Report
             $href = XHProfRuns_Ol::getRelativeUrlToOriginalDir() . '?' . http_build_query(xhprof_array_set($funcUrlParams, 'symbol', $functionName));
             ?>
             <tr>
-                <td><?= xhprof_render_link($functionName, $href) ?></td>
+                <td><?= xhprof_render_link($functionName, $href, '', '', '' ,'_blank') ?></td>
                 <?php
                 foreach ($arMetricsWoPercents as $metric) {
                     self::printFunctionMetric($url_params, $arSymbolTabs, $functionName, $metric, $printAverage);
