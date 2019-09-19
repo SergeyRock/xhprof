@@ -8,6 +8,12 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 	protected $dir;
 	protected $suffix = 'xhprof';
 
+    public static function getWrappedTitle($title, $maxLineChars = 5)
+    {
+        $arLines = str_split($title, $maxLineChars);
+        return implode("\n", $arLines);
+    }
+
     public static function getRelativeUrlToOriginalDir()
     {
         $dir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
@@ -122,6 +128,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         for ($i = 0; $i < $runsCount; $i++) {
             $arRunInfo = [
                 'run' => $arRuns[$i],
+                'run_wrapped' => self::getWrappedTitle($arRuns[$i], 5),
                 'source' => $arSources[$i],
                 'run_source' => $arRuns[$i] . '.' . $arSources[$i],
                 'file' => $this->getRunFileName($arRuns[$i], $arSources[$i]),

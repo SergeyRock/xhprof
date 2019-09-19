@@ -168,3 +168,9 @@ span.sorted {
     margin-top: 10px;
     text-align: center;
 }
+
+.run-value {
+    font-family: monospace;
+    font-weight: normal;
+    font-size: 14px
+}

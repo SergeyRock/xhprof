@@ -126,7 +126,7 @@ class Ol_Xhprof_Report
                 ?>
                 <tr>
                     <td class="table-cell"><?= $arRunInfo['file_date'] ?></td>
-                    <td class="table-cell"><?= $arRunInfo['run'] ?></td>
+                    <td class="table-cell run-value"><?= $arRunInfo['run_wrapped'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['source'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['new_report_href'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['original_report_href'] ?></td>
@@ -243,7 +243,7 @@ class Ol_Xhprof_Report
                 <?php
                 foreach ($arMetrics as $stat) {
                     for ($i = 0; $i < $runsCount; $i++) {
-                        $runInfoWrapped = self::getWrappedTitle($arRunsInfo[$i], 5);
+                        $runInfoWrapped = XHProfRuns_Ol::getWrappedTitle($arRunsInfo[$i], 5);
 
                         $additionalClass = '';
                         if ($i === 0) {
@@ -251,7 +251,7 @@ class Ol_Xhprof_Report
                         }
 
                         ?>
-                        <th class="second-header-row vwbar<?= $additionalClass ?>"><?= $runInfoWrapped ?></th>
+                        <th class="second-header-row vwbar<?= $additionalClass ?> run-value"><?= $runInfoWrapped ?></th>
                         <?php
                     }
                     if ($printAverage) {
@@ -328,12 +328,6 @@ class Ol_Xhprof_Report
             $flat_data[] = $tmp;
         }
         return $flat_data;
-    }
-
-    protected static function getWrappedTitle($title, $maxLineChars = 4)
-    {
-        $arLines = str_split($title, $maxLineChars);
-        return implode("\n", $arLines);
     }
 
     /**
