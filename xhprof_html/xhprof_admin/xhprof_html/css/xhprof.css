@@ -107,6 +107,7 @@ table.highlighted tbody td.table-cell {
     position: sticky;
     top: 29px;
     background: #bdc7d8;
+    white-space: nowrap!important;
 }
 
 .second-header-row {
