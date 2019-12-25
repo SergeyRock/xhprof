@@ -123,6 +123,14 @@ class Ol_Xhprof_Report
             <tbody>
             <?php
             foreach ($arRunsInfo as $arRunInfo) {
+                $commentText = '';
+                if ($arRunInfo['comment'] || $arRunInfo['session']) {
+                    $commentText .= '<pre>' . trim($arRunInfo['comment']);
+                    if ($arRunInfo['session']) {
+                        $commentText .= '<hr>' . $arRunInfo['session'];
+                    }
+                    $commentText .= '</pre>';
+                }
                 ?>
                 <tr>
                     <td class="table-cell"><?= $arRunInfo['file_date'] ?></td>
@@ -132,7 +140,7 @@ class Ol_Xhprof_Report
                     <td class="table-cell"><?= $arRunInfo['original_report_href'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['callgraph_href'] ?></td>
                     <td class="table-cell"><?= $arRunInfo['exclude_href'] ?></td>
-                    <td class="table-cell"><?= $arRunInfo['comment'] ?></td>
+                    <td class="table-cell"><?= $commentText  ?></td>
                     <td class="table-cell"><?= $arRunInfo['file_size_formatted'] ?></td>
                 </tr>
                 <?php

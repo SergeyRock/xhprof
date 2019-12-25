@@ -5,6 +5,7 @@ require_once $GLOBALS['OL_XHPROF_LIB_ROOT'] . '/../../../xhprof_lib/utils/xhprof
 class XHProfRuns_Ol extends XHProfRuns_Default
 {
     const CUSTOM_COMMENTS_FILE_SUFFIX = 'comment';
+    const SESSION_FILE_SUFFIX = 'session';
 	protected $dir;
 	protected $suffix = 'xhprof';
 
@@ -46,7 +47,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
 		if (is_dir($this->dir)) {
 			?>
             <div>
-                <form action="" method="post">
+                <form action="./" method="post">
                     <div class="sticky" >
                         <table width="100%" rule="rows">
                             <tr>
@@ -133,6 +134,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                 'run_source' => $arRuns[$i] . '.' . $arSources[$i],
                 'file' => $this->getRunFileName($arRuns[$i], $arSources[$i]),
                 'comment_file' => $this->getRunCommentFileName($arRuns[$i], $arSources[$i]),
+                'session_file' => $this->getRunSessionFileName($arRuns[$i], $arSources[$i]),
                 'original_report_url' => self::getOriginalReportRunLink($arRuns[$i], $arSources[$i]),
                 'new_report_url' => self::getNewReportRunLink($arRuns[$i], $arSources[$i]),
                 'callgraph_url' => self::getCallgraphLink($arRuns[$i], $arSources[$i]),
@@ -149,6 +151,9 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             }
             if(file_exists($arRunInfo['comment_file'])) {
                 $arRunInfo['comment'] = json_decode(file_get_contents($arRunInfo['comment_file']), true);
+            }
+            if (file_exists($arRunInfo['session_file'])) {
+                $arRunInfo['session'] = htmlspecialchars($this->getRunSessionInfo($arRunInfo['session_file']));
             }
 
             // additional highlighted source part
@@ -226,9 +231,8 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         $arRunInfos = $this->getRunsInfo([$run], [$source]);
         $arRunInfo = $arRunInfos[0];
         $runId = $arRunInfo['run_source'];
-
         ?>
-        <tr>
+        <tr title="<?= $arRunInfo['session'] ?>">
             <td><?= $arRunInfo['file_date'] ?></td>
             <td>
                 <input type="checkbox" value="<?= $runId ?>" name="runs[]" id="<?= $runId ?>">
@@ -246,6 +250,15 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             <td><?= $arRunInfo['file_size_formatted'] ?></td>
         </tr>
         <?php
+    }
+
+    protected function getRunSessionInfo($fileName)
+    {
+        if (!file_exists($fileName)) {
+            return '';
+        }
+
+        return trim(json_decode(file_get_contents($fileName)));
     }
 
 	protected static function getRunsSourcesSortsWeightsFromRequestSorted()
@@ -350,6 +363,11 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         return $this->getRunFileName($run, $source) . '.' . self::CUSTOM_COMMENTS_FILE_SUFFIX;
 	}
 
+    public function getRunSessionFileName($run, $source)
+    {
+        return $this->getRunFileName($run, $source) . '.' . self::SESSION_FILE_SUFFIX;
+	}
+
 	public function saveCustomCommentsByRequest()
     {
         $arComments = $_REQUEST['comment'];
@@ -393,9 +411,7 @@ class XHProfRuns_Ol extends XHProfRuns_Default
             return false;
         }
 
-        $arDeletedRuns = [];
-        $arErrRuns = [];
-        $arErrRunsComments = [];
+        $arErrRuns = $arDeletedRuns = $arErrRunsComments = $arErrRunsSessions = [];
         for ($i = 0; $i < $runsCount; $i++) {
             $file = $this->getRunFileName($arRuns[$i], $arSources[$i]);
             if (file_exists($file)) {
@@ -405,10 +421,18 @@ class XHProfRuns_Ol extends XHProfRuns_Default
                     $arDeletedRuns[] = $arRuns[$i];
                 }
             }
+
             $file = $this->getRunCommentFileName($arRuns[$i], $arSources[$i]);
             if (file_exists($file)) {
                 if(unlink($file) === false) {
                     $arErrRunsComments[] = $arRuns[$i];
+                }
+            }
+
+            $file = $this->getRunSessionFileName($arRuns[$i], $arSources[$i]);
+            if (file_exists($file)) {
+                if(unlink($file) === false) {
+                    $arErrRunsSessions[] = $arRuns[$i];
                 }
             }
         }
@@ -429,6 +453,12 @@ class XHProfRuns_Ol extends XHProfRuns_Default
         if($errRunsCommentsCount > 0) {
             $errComments = implode(', ', $arErrRunsComments);
             echo '<div class="error">Unable to delete comments of runs (' . $errRunsCommentsCount . '): ' . $errComments . '</div>';
+        }
+
+        $errRunsSessionsCount = count($arErrRunsSessions);
+        if($errRunsSessionsCount > 0) {
+            $errSessions = implode(', ', $arErrRunsSessions);
+            echo '<div class="error">Unable to delete sessions of runs (' . $errRunsSessionsCount . '): ' . $errSessions . '</div>';
         }
     }
 
